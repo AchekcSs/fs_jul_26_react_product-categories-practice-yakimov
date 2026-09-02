@@ -34,6 +34,11 @@ export const App = () => {
     setQuery(value);
   };
 
+  const handleResetClick = () => {
+    setSelectedUser(null);
+    setQuery('');
+  };
+
   const getVisibleProducts = (incomeProducts, inputQuery) => {
     let currentProducts = incomeProducts;
     const processedQuery = inputQuery.trim().toLowerCase();
@@ -159,6 +164,7 @@ export const App = () => {
                 data-cy="ResetAllButton"
                 href="#/"
                 className="button is-link is-outlined is-fullwidth"
+                onClick={handleResetClick}
               >
                 Reset all filters
               </a>
