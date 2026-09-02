@@ -26,20 +26,36 @@ const products = productsFromServer.map(product => {
 
 export const App = () => {
   const [selectedUser, setSelectedUser] = useState(null);
+  const [query, setQuery] = useState('');
 
   const handleUserClick = user => setSelectedUser(user);
 
-  const getVisibleProducts = incomeProducts => {
+  const handleInputChange = value => {
+    setQuery(value);
+  };
+
+  const getVisibleProducts = (incomeProducts, inputQuery) => {
+    let currentProducts = incomeProducts;
+    const processedQuery = inputQuery.trim().toLowerCase();
+
     if (selectedUser !== null) {
-      return incomeProducts.filter(
+      currentProducts = currentProducts.filter(
         product => product.user.id === selectedUser.id,
       );
     }
 
-    return incomeProducts;
+    if (inputQuery !== '') {
+      currentProducts = currentProducts.filter(({ name }) => {
+        const processedName = name.trim().toLowerCase();
+
+        return processedName.includes(processedQuery);
+      });
+    }
+
+    return currentProducts;
   };
 
-  const visibleProducts = getVisibleProducts(products);
+  const visibleProducts = getVisibleProducts(products, query);
 
   return (
     <div className="section">
@@ -74,18 +90,6 @@ export const App = () => {
                   {user.name}
                 </a>
               ))}
-
-              {/* <a data-cy="FilterUser" href="#/">
-                User 1
-              </a>
-
-              <a data-cy="FilterUser" href="#/" className="is-active">
-                User 2
-              </a>
-
-              <a data-cy="FilterUser" href="#/">
-                User 3
-              </a> */}
             </p>
 
             <div className="panel-block">
@@ -95,21 +99,25 @@ export const App = () => {
                   type="text"
                   className="input"
                   placeholder="Search"
-                  value="qwe"
+                  value={query}
+                  onChange={event => handleInputChange(event.target.value)}
                 />
 
                 <span className="icon is-left">
                   <i className="fas fa-search" aria-hidden="true" />
                 </span>
 
-                <span className="icon is-right">
-                  {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
-                  <button
-                    data-cy="ClearButton"
-                    type="button"
-                    className="delete"
-                  />
-                </span>
+                {query !== '' && (
+                  <span className="icon is-right">
+                    {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
+                    <button
+                      data-cy="ClearButton"
+                      type="button"
+                      className="delete"
+                      onClick={() => setQuery('')}
+                    />
+                  </span>
+                )}
               </p>
             </div>
 
