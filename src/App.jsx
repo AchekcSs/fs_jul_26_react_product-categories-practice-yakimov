@@ -1,9 +1,10 @@
 /* eslint-disable jsx-a11y/accessible-emoji */
+import { useState } from 'react';
+
 import cn from 'classnames';
 
 import './App.scss';
 
-import { useState } from 'react';
 import usersFromServer from './api/users';
 import categoriesFromServer from './api/categories';
 import productsFromServer from './api/products';
@@ -27,6 +28,7 @@ const products = productsFromServer.map(product => {
 export const App = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [query, setQuery] = useState('');
+  const [selectedCategories, setSelectedCategories] = useState([]);
 
   const handleUserClick = user => setSelectedUser(user);
 
@@ -37,6 +39,24 @@ export const App = () => {
   const handleResetClick = () => {
     setSelectedUser(null);
     setQuery('');
+    setSelectedCategories([]);
+  };
+
+  const handleCategoryFilterClick = category => {
+    setSelectedCategories(prev => {
+      const currentSelectedCategories = [...prev];
+
+      if (!currentSelectedCategories.includes(category)) {
+        currentSelectedCategories.push(category);
+      } else {
+        currentSelectedCategories.splice(
+          currentSelectedCategories.indexOf(category),
+          1,
+        );
+      }
+
+      return currentSelectedCategories;
+    });
   };
 
   const getVisibleProducts = (incomeProducts, inputQuery) => {
@@ -55,6 +75,20 @@ export const App = () => {
 
         return processedName.includes(processedQuery);
       });
+    }
+
+    if (selectedCategories.length !== 0) {
+      const productsByCategories = [];
+
+      selectedCategories.forEach(({ title }) => {
+        productsByCategories.push(
+          ...currentProducts.filter(
+            product => product.category.title === title,
+          ),
+        );
+      });
+
+      return productsByCategories.sort((a, b) => a.id - b.id);
     }
 
     return currentProducts;
@@ -130,33 +164,33 @@ export const App = () => {
               <a
                 href="#/"
                 data-cy="AllCategories"
-                className="button is-success mr-6 is-outlined"
+                className={cn('button', 'is-success', 'mr-6', {
+                  'is-outlined': selectedCategories.length !== 0,
+                })}
+                onClick={() => setSelectedCategories([])}
               >
                 All
               </a>
 
-              <a
-                data-cy="Category"
-                className="button mr-2 my-1 is-info"
-                href="#/"
-              >
-                Category 1
-              </a>
+              {categoriesFromServer.map(category => {
+                const isSelected = selectedCategories.find(
+                  ({ id }) => category.id === id,
+                );
 
-              <a data-cy="Category" className="button mr-2 my-1" href="#/">
-                Category 2
-              </a>
-
-              <a
-                data-cy="Category"
-                className="button mr-2 my-1 is-info"
-                href="#/"
-              >
-                Category 3
-              </a>
-              <a data-cy="Category" className="button mr-2 my-1" href="#/">
-                Category 4
-              </a>
+                return (
+                  <a
+                    key={category.id}
+                    data-cy="Category"
+                    className={cn('button', 'mr-2', 'my-1', {
+                      'is-info': isSelected,
+                    })}
+                    href="#/"
+                    onClick={() => handleCategoryFilterClick(category)}
+                  >
+                    {category.title}
+                  </a>
+                );
+              })}
             </div>
 
             <div className="panel-block">
